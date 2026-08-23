@@ -100,23 +100,29 @@ print("🚀 GitHub Pages will deploy automatically")
 
 
 # -----------------------------
-# 7. ENABLE GITHUB PAGES
+# 7. ENABLE GITHUB PAGES (with retry)
 # -----------------------------
-pages_url = f"https://api.github.com/repos/{GITHUB_USERNAME}/{REPO_NAME}/pages"
+import time
 
+pages_url = f"https://api.github.com/repos/{GITHUB_USERNAME}/{REPO_NAME}/pages"
 pages_data = {
-    "source": {
-        "branch": "main",
-        "path": "/"
-    }
+    "source": {"branch": "main", "path": "/"}
 }
 
-pages_response = requests.put(pages_url, json=pages_data, headers=headers)
+print("⏳ Enabling GitHub Pages...")
 
-if pages_response.status_code in [201, 204]:
-    print("✔ GitHub Pages enabled")
+for attempt in range(5):
+    pages_response = requests.put(pages_url, json=pages_data, headers=headers)
+
+    if pages_response.status_code in [201, 204, 202]:
+        print("✔ GitHub Pages enabled")
+        break
+
+    print(f"⚠ Pages not ready yet (attempt {attempt+1}) — retrying...")
+    time.sleep(5)
 else:
     print("❌ Failed to enable GitHub Pages:", pages_response.json())
+
 
 
 
